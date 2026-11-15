@@ -9,8 +9,14 @@ class Warehouse {
 private:
     int width;
     int height;
+
     std::vector<Robot*> robots;
     std::vector<Task> tasks;
+
+    // Task assignment
+    std::vector<std::vector<int>> robotTaskQueues;
+    std::vector<int> currentTaskIndices;
+    std::vector<bool> taskStarted;
 
 public:
     Warehouse(int width, int height);

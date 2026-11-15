@@ -24,6 +24,8 @@ public:
 
     int getId() const;
     std::string getType() const;
+    int getX() const;
+    int getY() const;
     bool isCompleted() const;
 };
 

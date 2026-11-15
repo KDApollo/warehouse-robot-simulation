@@ -18,6 +18,11 @@ public:
 
     std::string getName() const;
     int getBattery() const;
+    int getX() const;
+    int getY() const;
+
+    // Movement
+    void moveOneStep(int targetX, int targetY);
 };
 
 #endif

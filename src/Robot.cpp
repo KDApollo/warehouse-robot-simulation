@@ -20,3 +20,27 @@ std::string Robot::getName() const {
 int Robot::getBattery() const {
     return battery;
 }
+int Robot::getX() const {
+    return x;
+}
+
+int Robot::getY() const {
+    return y;
+}
+
+// Move
+void Robot::moveOneStep(int targetX, int targetY) {
+
+    if (x < targetX) {
+        x++;
+    }
+    else if (x > targetX) {
+        x--;
+    }
+    else if (y < targetY) {
+        y++;
+    }
+    else if (y > targetY) {
+        y--;
+    }
+}

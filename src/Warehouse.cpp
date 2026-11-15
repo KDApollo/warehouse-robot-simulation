@@ -19,9 +19,28 @@ void Warehouse::addTask(const Task& task) {
     tasks.push_back(task);
 }
 
+
 void Warehouse::assignTasks() {
-    std::cout << "Assigning tasks...\n";
+
+    if (robots.empty()) {
+        std::cout << "No robots available!\n";
+        return;
+    }
+
+    robotTaskQueues.resize(robots.size());
+    currentTaskIndices.assign(robots.size(), 0);
+
+    for (int i = 0; i < tasks.size(); i++) {
+        int robotIndex = i % robots.size();
+
+        robotTaskQueues[robotIndex].push_back(i);
+    }
+
+    taskStarted.assign(tasks.size(), false);
+
+    std::cout << "Tasks assigned successfully!\n";
 }
+
 
 void Warehouse::update() {
     for (Robot* robot : robots) {

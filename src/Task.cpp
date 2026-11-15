@@ -35,3 +35,11 @@ std::string Task::getType() const {
 bool Task::isCompleted() const {
     return completed;
 }
+
+int Task::getX() const {
+    return x;
+}
+
+int Task::getY() const {
+    return y;
+}

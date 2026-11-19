@@ -18,6 +18,9 @@ private:
     std::vector<int> currentTaskIndices;
     std::vector<bool> taskStarted;
 
+    int chargingStationX;
+    int chargingStationY;
+
 public:
     Warehouse(int width, int height);
     ~Warehouse();
@@ -30,6 +33,8 @@ public:
     void displayGrid() const;
     void runSimulation();
     void showSummary() const;
+
+    void setChargingStation(int x, int y);
 };
 
 #endif

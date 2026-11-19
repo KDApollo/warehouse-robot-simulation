@@ -2,7 +2,10 @@
 #include <iostream>
 
 Warehouse::Warehouse(int width, int height)
-    : width(width), height(height) {
+    : width(width),
+      height(height),
+      chargingStationX(-1),
+      chargingStationY(-1) {
 }
 
 Warehouse::~Warehouse() {
@@ -106,6 +109,7 @@ void Warehouse::update() {
 
 
 
+
 void Warehouse::displayGrid() const {
 
     std::cout << "\nWarehouse Grid ("
@@ -117,6 +121,7 @@ void Warehouse::displayGrid() const {
 
             bool robotFound = false;
 
+            // Check robot position
             for (int i = 0; i < robots.size(); i++) {
 
                 if (robots[i]->getX() == x &&
@@ -128,6 +133,16 @@ void Warehouse::displayGrid() const {
                 }
             }
 
+            // Check charging station position
+            if (!robotFound &&
+                x == chargingStationX &&
+                y == chargingStationY) {
+
+                std::cout << "C  ";
+                robotFound = true;
+            }
+
+            // Empty cell
             if (!robotFound) {
                 std::cout << ".  ";
             }
@@ -136,6 +151,7 @@ void Warehouse::displayGrid() const {
         std::cout << "\n";
     }
 }
+
 
 
 void Warehouse::runSimulation() {
@@ -154,4 +170,20 @@ void Warehouse::runSimulation() {
 
 void Warehouse::showSummary() const {
     std::cout << "Simulation finished.\n";
+}
+
+void Warehouse::setChargingStation(int x, int y) {
+
+    if (x < 0 || x >= width ||
+        y < 0 || y >= height) {
+
+        std::cout << "Invalid charging station position!\n";
+        return;
+    }
+
+    chargingStationX = x;
+    chargingStationY = y;
+
+    std::cout << "Charging Station set at ("
+              << x << ", " << y << ")\n";
 }

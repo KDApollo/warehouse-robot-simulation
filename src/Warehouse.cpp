@@ -105,10 +105,38 @@ void Warehouse::update() {
 }
 
 
+
 void Warehouse::displayGrid() const {
-    std::cout << "Warehouse size: "
-              << width << " x " << height << "\n";
+
+    std::cout << "\nWarehouse Grid ("
+              << width << " x " << height << ")\n";
+
+    for (int y = 0; y < height; y++) {
+
+        for (int x = 0; x < width; x++) {
+
+            bool robotFound = false;
+
+            for (int i = 0; i < robots.size(); i++) {
+
+                if (robots[i]->getX() == x &&
+                    robots[i]->getY() == y) {
+
+                    std::cout << "R" << i + 1 << " ";
+                    robotFound = true;
+                    break;
+                }
+            }
+
+            if (!robotFound) {
+                std::cout << ".  ";
+            }
+        }
+
+        std::cout << "\n";
+    }
 }
+
 
 void Warehouse::runSimulation() {
     std::cout << "Starting simulation...\n";
@@ -118,6 +146,7 @@ void Warehouse::runSimulation() {
     for (int step = 0; step < 5; step++) {
         std::cout << "Step " << step + 1 << "\n";
         update();
+        displayGrid();
     }
 
     showSummary();

@@ -28,6 +28,27 @@ int Robot::getY() const {
     return y;
 }
 
+
+void Robot::decreaseBattery(int amount) {
+    battery -= amount;
+
+    if (battery < 0) {
+        battery = 0;
+    }
+}
+
+void Robot::chargeBattery(int amount) {
+    battery += amount;
+
+    if (battery > 100) {
+        battery = 100;
+    }
+}
+
+bool Robot::isLowBattery() const {
+    return battery < 20;
+}
+
 // Move
 void Robot::moveOneStep(int targetX, int targetY) {
 
@@ -43,4 +64,9 @@ void Robot::moveOneStep(int targetX, int targetY) {
     else if (y > targetY) {
         y--;
     }
+    else{
+        return;
+    }
+
+    decreaseBattery(1);
 }

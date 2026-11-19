@@ -23,6 +23,11 @@ public:
 
     // Movement
     void moveOneStep(int targetX, int targetY);
+
+    // Battery
+    void decreaseBattery(int amount);
+    void chargeBattery(int amount);
+    bool isLowBattery() const;
 };
 
 #endif

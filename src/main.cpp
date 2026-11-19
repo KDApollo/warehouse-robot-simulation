@@ -22,7 +22,7 @@ int main() {
     warehouse.setChargingStation(chargeX, chargeY);
 
     // Create robots
-    warehouse.addRobot(new Picker("Picker-1", 0, 0, 100));
+    warehouse.addRobot(new Picker("Picker-1", 0, 0, 19));
     warehouse.addRobot(new Packer("Packer-1", 0, 1, 100));
     warehouse.addRobot(new Picker("Picker-2", 0, 2, 100));
 

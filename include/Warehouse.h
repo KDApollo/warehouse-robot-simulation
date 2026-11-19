@@ -20,6 +20,9 @@ private:
 
     int chargingStationX;
     int chargingStationY;
+    std::vector<bool> returningToCharge;
+
+    bool allTasksCompleted() const;
 
 public:
     Warehouse(int width, int height);

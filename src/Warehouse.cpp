@@ -41,9 +41,13 @@ void Warehouse::assignTasks() {
     }
 
     taskStarted.assign(tasks.size(), false);
-
+    returningToCharge.assign(robots.size(), false);
+    
     std::cout << "Tasks assigned successfully!\n";
+
 }
+
+
 
 
 
@@ -51,24 +55,63 @@ void Warehouse::update() {
 
     for (int i = 0; i < robots.size(); i++) {
 
-        // Check whether this robot has any remaining tasks
+        Robot* robot = robots[i];
+
+        // 1. Check low battery first
+        if (returningToCharge[i] || robot->isLowBattery()) {
+
+            returningToCharge[i] = true;
+
+            if (chargingStationX == -1 || chargingStationY == -1) {
+                std::cout << "No charging station available!\n";
+                continue;
+            }
+
+            // Move to charging station
+            if (robot->getX() != chargingStationX ||
+                robot->getY() != chargingStationY) {
+
+                robot->moveOneStep(chargingStationX, chargingStationY);
+
+                std::cout << robot->getName()
+                          << " returning to charging station. Battery: "
+                          << robot->getBattery() << "%\n";
+            }
+            else {
+                // Charge battery by 20%
+                robot->chargeBattery(20);
+
+                std::cout << robot->getName()
+                          << " is charging. Battery: "
+                          << robot->getBattery() << "%\n";
+
+                // Resume when battery is full
+                if (robot->getBattery() == 100) {
+                    returningToCharge[i] = false;
+
+                    std::cout << robot->getName()
+                              << " battery full. Resume task!\n";
+                }
+            }
+
+            continue;
+        }
+
+        // 2. Check whether this robot has remaining tasks
         if (currentTaskIndices[i] >= robotTaskQueues[i].size()) {
             continue;
         }
 
-        // Get the current task assigned to this robot
+        // 3. Get current task
         int taskIndex = robotTaskQueues[i][currentTaskIndices[i]];
-
         Task& task = tasks[taskIndex];
-        Robot* robot = robots[i];
 
-        // Skip completed tasks
         if (task.isCompleted()) {
             currentTaskIndices[i]++;
             continue;
         }
 
-        // Move toward the task location
+        // 4. Move toward task
         if (robot->getX() != task.getX() ||
             robot->getY() != task.getY()) {
 
@@ -81,21 +124,21 @@ void Warehouse::update() {
         }
         else {
 
-            // Start the task only once
             if (!taskStarted[taskIndex]) {
                 task.start();
                 taskStarted[taskIndex] = true;
                 robot->work();
             }
 
-            // Perform the task
             task.updateProgress();
+
+            // Working consumes 2% battery
+            robot->decreaseBattery(2);
 
             std::cout << robot->getName()
                       << " is working on Task "
                       << task.getId() << "\n";
 
-            // Move to the next task when completed
             if (task.isCompleted()) {
                 std::cout << "Task "
                           << task.getId()
@@ -106,6 +149,8 @@ void Warehouse::update() {
         }
     }
 }
+
+
 
 
 
@@ -152,6 +197,15 @@ void Warehouse::displayGrid() const {
     }
 }
 
+bool Warehouse::allTasksCompleted() const {
+    for (const Task& task : tasks) {
+        if (!task.isCompleted()) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 
 void Warehouse::runSimulation() {
@@ -159,14 +213,39 @@ void Warehouse::runSimulation() {
 
     assignTasks();
 
-    for (int step = 0; step < 5; step++) {
-        std::cout << "Step " << step + 1 << "\n";
+    int step = 1;
+
+    while (true) {
+
+        std::cout << "\nStep " << step << "\n";
+
         update();
         displayGrid();
+
+        // Check whether all tasks are completed
+        bool tasksDone = allTasksCompleted();
+
+        // Check whether all robots have finished charging
+        bool chargingDone = true;
+
+        for (int i = 0; i < robots.size(); i++) {
+            if (returningToCharge[i]) {
+                chargingDone = false;
+                break;
+            }
+        }
+
+        // Stop when all tasks are done and charging is complete
+        if (tasksDone && chargingDone) {
+            break;
+        }
+
+        step++;
     }
 
     showSummary();
 }
+
 
 void Warehouse::showSummary() const {
     std::cout << "Simulation finished.\n";

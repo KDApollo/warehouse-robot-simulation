@@ -7,6 +7,7 @@ class Picker : public Robot {
 public:
     Picker(std::string name, int x, int y, int battery);
     void work() override;
+    std::string getType() const;
 };
 
 #endif

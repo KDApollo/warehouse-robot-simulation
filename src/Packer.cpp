@@ -8,3 +8,7 @@ Packer::Packer(std::string name, int x, int y, int battery)
 void Packer::work() {
     std::cout << getName() << " is packing items.\n";
 }
+
+std::string Packer::getType() const {
+    return "Packing";
+}

@@ -1,10 +1,15 @@
 #include "Task.h"
 
 Task::Task(int id, std::string name, std::string type,
-           int x, int y, int duration)
-    : id(id), name(name), type(type), x(x), y(y),
-      duration(duration), progress(0), completed(false) {
-}
+           int x, int y)
+    : id(id),
+      name(name),
+      type(type),
+      x(x),
+      y(y),
+      duration(type == "Picking" ? 2 : 3),
+      progress(0),
+      completed(false) {}
 
 void Task::start() {
     progress = 0;
@@ -42,4 +47,8 @@ int Task::getX() const {
 
 int Task::getY() const {
     return y;
+}
+
+int Task::getDuration() const {
+    return duration;
 }

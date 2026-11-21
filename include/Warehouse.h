@@ -21,7 +21,9 @@ private:
     int chargingStationX;
     int chargingStationY;
     std::vector<bool> returningToCharge;
-
+    bool simulationFailed;
+    bool hasEnoughBattery(const Robot* robot, const Task& task) const;
+    
     bool allTasksCompleted() const;
 
 public:
@@ -36,6 +38,7 @@ public:
     void displayGrid() const;
     void runSimulation();
     void showSummary() const;
+    void displayRobotStatus() const;
 
     void setChargingStation(int x, int y);
 };

@@ -8,3 +8,7 @@ Picker::Picker(std::string name, int x, int y, int battery)
 void Picker::work() {
     std::cout << getName() << " is picking items.\n";
 }
+
+std::string Picker::getType() const {
+    return "Picking";
+}

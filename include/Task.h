@@ -16,7 +16,7 @@ private:
 
 public:
     Task(int id, std::string name, std::string type,
-         int x, int y, int duration);
+         int x, int y);
 
     void start();
     void updateProgress();
@@ -27,6 +27,7 @@ public:
     int getX() const;
     int getY() const;
     bool isCompleted() const;
+    int getDuration() const;
 };
 
 #endif

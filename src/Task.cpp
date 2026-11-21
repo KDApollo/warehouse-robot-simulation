@@ -52,3 +52,11 @@ int Task::getY() const {
 int Task::getDuration() const {
     return duration;
 }
+
+std::string Task::getName() const {
+    return name;
+}
+
+int Task::getProgress() const {
+    return progress;
+}

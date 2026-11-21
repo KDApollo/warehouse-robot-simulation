@@ -1,63 +1,166 @@
+
 #include <iostream>
 #include <limits>
+#include <string>
+
 #include "Warehouse.h"
 #include "Picker.h"
 #include "Packer.h"
+#include "Task.h"
+
+// รับตัวเลขและตรวจสอบช่วง
+int readInt(std::string message, int min, int max) {
+    int value;
+
+    while (true) {
+        std::cout << message;
+
+        if (std::cin >> value && value >= min && value <= max) {
+            return value;
+        }
+
+        std::cout << "Invalid input! Please try again.\n";
+
+        std::cin.clear();
+        std::cin.ignore(
+            std::numeric_limits<std::streamsize>::max(), '\n'
+        );
+    }
+}
+
+// เพิ่ม Robot
+void setupRobots(Warehouse& warehouse) {
+    std::cout << "\n========== ADD ROBOTS ==========\n";
+
+    int robotCount = readInt("How many robots? ", 1, 20);
+
+    for (int i = 0; i < robotCount; i++) {
+        std::cout << "\nRobot " << i + 1 << "\n";
+
+        std::cout << "1. Picker\n";
+        std::cout << "2. Packer\n";
+
+        int type = readInt("Select type: ", 1, 2);
+
+        std::string name;
+        std::cout << "Name (no spaces): ";
+        std::cin >> name;
+
+        int x = readInt("Position X (0-9): ", 0, 9);
+        int y = readInt("Position Y (0-4): ", 0, 4);
+        int battery = readInt("Battery (0-100): ", 0, 100);
+
+        if (type == 1) {
+            warehouse.addRobot(new Picker(name, x, y, battery));
+        }
+        else {
+            warehouse.addRobot(new Packer(name, x, y, battery));
+        }
+    }
+}
+
+// เพิ่ม Task
+void setupTasks(Warehouse& warehouse) {
+    std::cout << "\n========== ADD TASKS ==========\n";
+
+    int taskCount = readInt("How many tasks? ", 1, 100);
+
+    for (int i = 0; i < taskCount; i++) {
+        std::cout << "\nTask " << i + 1 << "\n";
+
+        std::cout << "1. Picking\n";
+        std::cout << "2. Packing\n";
+
+        int type = readInt("Select type: ", 1, 2);
+
+        std::string taskName;
+        std::cout << "Task name (no spaces): ";
+        std::cin >> taskName;
+
+        int x = readInt("Position X (0-9): ", 0, 9);
+        int y = readInt("Position Y (0-4): ", 0, 4);
+
+        std::string taskType = (type == 1) ? "Picking" : "Packing";
+
+        warehouse.addTask(
+            Task(i + 1, taskName, taskType, x, y)
+        );
+    }
+}
+
+// ตั้งค่า Default Mode
+void setupDefault(Warehouse& warehouse) {
+    std::cout << "\nLoading default configuration...\n";
+
+    // Charging Station
+    warehouse.setChargingStation(9, 4);
+
+    // Robots
+    warehouse.addRobot(new Picker("Picker-1", 0, 0, 25));
+    warehouse.addRobot(new Packer("Packer-1", 0, 1, 100));
+    warehouse.addRobot(new Picker("Picker-2", 0, 2, 100));
+
+    // Tasks
+    warehouse.addTask(Task(1, "Pick_Item_A", "Picking", 1, 0));
+    warehouse.addTask(Task(2, "Pack_Item_A", "Packing", 1, 1));
+    warehouse.addTask(Task(3, "Pick_Item_B", "Picking", 1, 2));
+    warehouse.addTask(Task(4, "Pick_Item_C", "Picking", 2, 1));
+    warehouse.addTask(Task(5, "Pack_Item_B", "Packing", 2, 2));
+
+    std::cout << "Default configuration loaded!\n";
+}
 
 int main() {
 
     Warehouse warehouse(10, 5);
 
-    int chargeX, chargeY;
+    // Select Simulation Mode
+    std::cout << "====================================\n";
+    std::cout << "     WAREHOUSE ROBOT SIMULATION\n";
+    std::cout << "====================================\n";
 
-    while (true) {
+    std::cout << "\n1. Default Mode\n";
+    std::cout << "2. Custom Mode\n";
 
-        std::cout << "Enter charging station X (0-9): ";
+    int mode = readInt("\nSelect mode: ", 1, 2);
 
-        if (!(std::cin >> chargeX)) {
-            std::cin.clear();
-            std::cin.ignore(
-                std::numeric_limits<std::streamsize>::max(), '\n'
-            );
+    // Mode Selection
+    if (mode == 1) {
 
-            std::cout << "Invalid input! Numbers only.\n\n";
-            continue;
-        }
+        // Default Mode
+        setupDefault(warehouse);
 
-        std::cout << "Enter charging station Y (0-4): ";
+    }
+    else {
 
-        if (!(std::cin >> chargeY)) {
-            std::cin.clear();
-            std::cin.ignore(
-                std::numeric_limits<std::streamsize>::max(), '\n'
-            );
+        // Custom Mode
+        std::cout << "\n========== CUSTOM MODE ==========\n";
 
-            std::cout << "Invalid input! Numbers only.\n\n";
-            continue;
-        }
+        int chargeX = readInt("Charging Station X (0-9): ", 0, 9);
+        int chargeY = readInt("Charging Station Y (0-4): ", 0, 4);
 
-        if (chargeX >= 0 && chargeX < 10 &&
-            chargeY >= 0 && chargeY < 5) {
+        warehouse.setChargingStation(chargeX, chargeY);
 
-            warehouse.setChargingStation(chargeX, chargeY);
-            break;
-        }
-
-        std::cout << "Invalid position! Please try again.\n\n";
+        setupRobots(warehouse);
+        setupTasks(warehouse);
     }
 
-    // Create robots
-    warehouse.addRobot(new Picker("Picker-1", 0, 0, 25));
-    warehouse.addRobot(new Packer("Packer-1", 0, 1, 100));
-    warehouse.addRobot(new Picker("Picker-2", 0, 2, 100));
+    // Display Initial Warehouse
+    std::cout << "\n========== INITIAL WAREHOUSE ==========\n";
 
-    // Create tasks
-    warehouse.addTask(Task(1, "Pick Item A", "Picking", 1, 0));
-    warehouse.addTask(Task(2, "Pack Item A", "Packing", 1, 1));
-    warehouse.addTask(Task(3, "Pick Item B", "Picking", 1, 2));
-    warehouse.addTask(Task(4, "Pick Item C", "Picking", 2, 1));
-    warehouse.addTask(Task(5, "Pack Item B", "Packing", 2, 2));
+    warehouse.displayGrid();
+    warehouse.displayRobotStatus();
+    warehouse.displayTaskProgress();
 
+    // Wait for user
+    std::cout << "\nPress Enter to start simulation...";
+
+    std::cin.ignore(
+        std::numeric_limits<std::streamsize>::max(), '\n'
+    );
+    std::cin.get();
+
+    // Start Simulation
     warehouse.runSimulation();
 
     return 0;

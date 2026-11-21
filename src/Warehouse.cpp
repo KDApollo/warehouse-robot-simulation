@@ -425,7 +425,7 @@ void Warehouse::runSimulation() {
         }
 
         displayGrid();
-
+        displayTaskProgress();
         // Display robot status
         displayRobotStatus();
 
@@ -496,3 +496,50 @@ void Warehouse::setChargingStation(int x, int y) {
               << x << ", " << y << ")\n";
 }
 
+
+void Warehouse::displayTaskProgress() const {
+
+    std::cout << "\n========== TASK STATUS ==========\n";
+
+    std::cout << std::left
+              << std::setw(6) << "Task"
+              << std::setw(16) << "Name"
+              << std::setw(12) << "Type"
+              << "Progress\n";
+
+    int waiting = 0;
+    int inProgress = 0;
+    int done = 0;
+
+    for (const Task& task : tasks) {
+
+        std::string status;
+
+        if (task.isCompleted()) {
+            status = "DONE";
+            done++;
+        }
+        else if (task.getProgress() > 0) {
+            status = "IN PROGRESS";
+            inProgress++;
+        }
+        else {
+            status = "WAITING";
+            waiting++;
+        }
+
+        std::string progress =
+            std::to_string(task.getProgress()) + "/" +
+            std::to_string(task.getDuration());
+
+        std::cout << std::left
+                  << std::setw(6) << ("T" + std::to_string(task.getId()))
+                  << std::setw(16) << task.getName()
+                  << std::setw(12) << task.getType()
+                  << progress << "\n";
+    }
+
+    std::cout << "\nTasks: Waiting " << waiting
+              << " | In Progress " << inProgress
+              << " | Done " << done << "\n";
+}

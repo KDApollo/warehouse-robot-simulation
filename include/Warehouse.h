@@ -23,7 +23,7 @@ private:
     std::vector<bool> returningToCharge;
     bool simulationFailed;
     bool hasEnoughBattery(const Robot* robot, const Task& task) const;
-    
+
     bool allTasksCompleted() const;
 
 public:
@@ -41,6 +41,8 @@ public:
     void displayRobotStatus() const;
 
     void setChargingStation(int x, int y);
+
+    void displayTaskProgress() const;
 };
 
 #endif

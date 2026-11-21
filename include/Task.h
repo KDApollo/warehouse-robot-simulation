@@ -28,6 +28,9 @@ public:
     int getY() const;
     bool isCompleted() const;
     int getDuration() const;
+
+    std::string getName() const;
+    int getProgress() const;
 };
 
 #endif

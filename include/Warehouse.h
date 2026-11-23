@@ -1,3 +1,4 @@
+
 #ifndef WAREHOUSE_H
 #define WAREHOUSE_H
 
@@ -20,10 +21,17 @@ private:
 
     int chargingStationX;
     int chargingStationY;
+
     std::vector<bool> returningToCharge;
+
     bool simulationFailed;
     int totalTimesteps;
-    bool hasEnoughBattery(const Robot* robot, const Task& task) const;
+    bool assignmentFailed;
+
+    bool hasEnoughBattery(
+        const Robot* robot,
+        const Task& task
+    ) const;
 
     bool allTasksCompleted() const;
 
@@ -35,9 +43,15 @@ public:
     void addTask(const Task& task);
 
     void assignTasks();
-    void update();
+
+    // รับค่าเพื่อเลือกการแสดง Log
+    void update(bool animationMode);
+
     void displayGrid() const;
-    void runSimulation();
+
+    // เลือก Full Output หรือ Animation
+    void runSimulation(bool animationMode);
+
     void showSummary() const;
     void displayRobotStatus() const;
 

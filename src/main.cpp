@@ -92,20 +92,17 @@ void setupTasks(Warehouse& warehouse) {
 void setupDefault(Warehouse& warehouse) {
     std::cout << "\nLoading default configuration...\n";
 
-    // Charging Station
     warehouse.setChargingStation(9, 4);
 
-    // Robots
     warehouse.addRobot(new Picker("Picker-1", 0, 0, 25));
-    warehouse.addRobot(new Packer("Packer-1", 0, 1, 100));
+    warehouse.addRobot(new Packer("Packer-1", 0, 1, 72));
     warehouse.addRobot(new Picker("Picker-2", 0, 2, 100));
 
-    // Tasks
-    warehouse.addTask(Task(1, "Pick_Item_A", "Picking", 1, 0));
-    warehouse.addTask(Task(2, "Pack_Item_A", "Packing", 1, 1));
-    warehouse.addTask(Task(3, "Pick_Item_B", "Picking", 1, 2));
-    warehouse.addTask(Task(4, "Pick_Item_C", "Picking", 2, 1));
-    warehouse.addTask(Task(5, "Pack_Item_B", "Packing", 2, 2));
+    warehouse.addTask(Task(1, "Pick_Item_A", "Picking", 5, 2));
+    warehouse.addTask(Task(2, "Pack_Item_A", "Packing", 9, 3));
+    warehouse.addTask(Task(3, "Pick_Item_B", "Picking", 3, 2));
+    warehouse.addTask(Task(4, "Pick_Item_C", "Picking", 1, 3));
+    warehouse.addTask(Task(5, "Pack_Item_B", "Packing", 7, 0));
 
     std::cout << "Default configuration loaded!\n";
 }
@@ -114,7 +111,6 @@ int main() {
 
     Warehouse warehouse(10, 5);
 
-    // Select Simulation Mode
     std::cout << "====================================\n";
     std::cout << "     WAREHOUSE ROBOT SIMULATION\n";
     std::cout << "====================================\n";
@@ -124,16 +120,10 @@ int main() {
 
     int mode = readInt("\nSelect mode: ", 1, 2);
 
-    // Mode Selection
     if (mode == 1) {
-
-        // Default Mode
         setupDefault(warehouse);
-
     }
     else {
-
-        // Custom Mode
         std::cout << "\n========== CUSTOM MODE ==========\n";
 
         int chargeX = readInt("Charging Station X (0-9): ", 0, 9);
@@ -153,15 +143,27 @@ int main() {
     warehouse.displayTaskProgress();
 
     // Wait for user
-    std::cout << "\nPress Enter to start simulation...";
+    std::cout << "\nPress Enter to continue...";
 
     std::cin.ignore(
         std::numeric_limits<std::streamsize>::max(), '\n'
     );
     std::cin.get();
 
+    // Select Simulation Display Mode
+    std::cout << "\n========== SIMULATION DISPLAY MODE ==========\n";
+    std::cout << "1. Full Output\n";
+    std::cout << "2. Animation Mode\n";
+
+    int displayMode = readInt("\nSelect display mode: ", 1, 2);
+
     // Start Simulation
-    warehouse.runSimulation();
+    if (displayMode == 1) {
+        warehouse.runSimulation(false);
+    }
+    else {
+        warehouse.runSimulation(true);
+    }
 
     return 0;
 }

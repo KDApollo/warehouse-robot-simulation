@@ -1,8 +1,11 @@
+
 #include <cstdlib>
 #include "Warehouse.h"
 #include <iostream>
 #include <map>
 #include <iomanip>
+#include <thread>
+#include <chrono>
 
 Warehouse::Warehouse(int width, int height)
     : width(width),
@@ -10,6 +13,7 @@ Warehouse::Warehouse(int width, int height)
       chargingStationX(-1),
       chargingStationY(-1),
       simulationFailed(false),
+      assignmentFailed(false),
       totalTimesteps(0) {
 }
 
@@ -30,8 +34,11 @@ void Warehouse::addTask(const Task& task) {
 // Round Robin Task Assignment
 void Warehouse::assignTasks() {
 
+    assignmentFailed = false;
+
     if (robots.empty()) {
         std::cout << "No robots available!\n";
+        assignmentFailed = true;
         return;
     }
 
@@ -47,7 +54,6 @@ void Warehouse::assignTasks() {
     for (int i = 0; i < tasks.size(); i++) {
 
         std::string taskType = tasks[i].getType();
-
         int startIndex = 0;
 
         if (lastAssigned.find(taskType) != lastAssigned.end()) {
@@ -63,7 +69,6 @@ void Warehouse::assignTasks() {
             if (robots[robotIndex]->getType() == taskType) {
 
                 robotTaskQueues[robotIndex].push_back(i);
-
                 lastAssigned[taskType] = robotIndex;
 
                 std::cout << "Task " << tasks[i].getId()
@@ -77,32 +82,36 @@ void Warehouse::assignTasks() {
         }
 
         if (!assigned) {
-            std::cout << "No compatible robot for Task "
-                      << tasks[i].getId() << "\n";
+            std::cout << "ERROR: No compatible robot for Task "
+                      << tasks[i].getId()
+                      << " (" << taskType << ")\n";
+
+            assignmentFailed = true;
         }
     }
 
-    std::cout << "Tasks assigned successfully!\n";
+    if (assignmentFailed) {
+        std::cout << "Task assignment failed!\n";
+    }
+    else {
+        std::cout << "Tasks assigned successfully!\n";
+    }
 }
-
 
 bool Warehouse::hasEnoughBattery(
     const Robot* robot,
     const Task& task
 ) const {
 
-    // Distance from robot to task
     int distanceToTask = robot->distanceTo(
         task.getX(),
         task.getY()
     );
 
-    // Distance from task to charging station
     int distanceToStation =
         abs(task.getX() - chargingStationX) +
         abs(task.getY() - chargingStationY);
 
-    // Battery required for working
     int workingBattery = task.getDuration() * 2;
 
     int requiredBattery =
@@ -114,7 +123,7 @@ bool Warehouse::hasEnoughBattery(
 }
 
 // Update Simulation
-void Warehouse::update() {
+void Warehouse::update(bool animationMode) {
 
     for (int i = 0; i < robots.size(); i++) {
 
@@ -125,29 +134,32 @@ void Warehouse::update() {
 
             returningToCharge[i] = true;
 
-            // Check charging station
             if (chargingStationX == -1 || chargingStationY == -1) {
-                std::cout << "No charging station available!\n";
+
+                if (!animationMode) {
+                    std::cout << "No charging station available!\n";
+                }
+
                 simulationFailed = true;
                 continue;
             }
 
-            // Calculate required battery
             int requiredBattery = robot->distanceTo(
                 chargingStationX, chargingStationY
             );
 
-            // Check battery availability
             if (robot->getBattery() < requiredBattery) {
 
-                std::cout << robot->getName()
-                          << " cannot reach charging station!\n";
+                if (!animationMode) {
+                    std::cout << robot->getName()
+                              << " cannot reach charging station!\n";
 
-                std::cout << "Required battery: "
-                          << requiredBattery << "%\n";
+                    std::cout << "Required battery: "
+                              << requiredBattery << "%\n";
 
-                std::cout << "Available battery: "
-                          << robot->getBattery() << "%\n";
+                    std::cout << "Available battery: "
+                              << robot->getBattery() << "%\n";
+                }
 
                 simulationFailed = true;
                 continue;
@@ -164,9 +176,11 @@ void Warehouse::update() {
                     chargingStationY
                 );
 
-                std::cout << robot->getName()
-                          << " returning to charging station. Battery: "
-                          << robot->getBattery() << "%\n";
+                if (!animationMode) {
+                    std::cout << robot->getName()
+                              << " returning to charging station. Battery: "
+                              << robot->getBattery() << "%\n";
+                }
             }
             else {
 
@@ -174,9 +188,11 @@ void Warehouse::update() {
                 robot->setStatus(RobotStatus::Charging);
                 robot->chargeBattery(20);
 
-                std::cout << robot->getName()
-                          << " is charging. Battery: "
-                          << robot->getBattery() << "%\n";
+                if (!animationMode) {
+                    std::cout << robot->getName()
+                              << " is charging. Battery: "
+                              << robot->getBattery() << "%\n";
+                }
 
                 // Resume task when battery is full
                 if (robot->getBattery() == 100) {
@@ -184,8 +200,10 @@ void Warehouse::update() {
                     returningToCharge[i] = false;
                     robot->setStatus(RobotStatus::Idle);
 
-                    std::cout << robot->getName()
-                              << " battery full. Resume task!\n";
+                    if (!animationMode) {
+                        std::cout << robot->getName()
+                                  << " battery full. Resume task!\n";
+                    }
                 }
             }
 
@@ -214,9 +232,12 @@ void Warehouse::update() {
         if (chargingStationX != -1 && chargingStationY != -1 &&
             !hasEnoughBattery(robot, task)) {
 
-            std::cout << robot->getName()
-                    << " does not have enough battery for Task "
-                    << task.getId() << ". Returning to charge.\n";
+            if (!animationMode) {
+                std::cout << robot->getName()
+                          << " does not have enough battery for Task "
+                          << task.getId()
+                          << ". Returning to charge.\n";
+            }
 
             returningToCharge[i] = true;
             continue;
@@ -230,10 +251,12 @@ void Warehouse::update() {
 
             robot->moveOneStep(task.getX(), task.getY());
 
-            std::cout << robot->getName()
-                      << " moved to ("
-                      << robot->getX() << ", "
-                      << robot->getY() << ")\n";
+            if (!animationMode) {
+                std::cout << robot->getName()
+                          << " moved to ("
+                          << robot->getX() << ", "
+                          << robot->getY() << ")\n";
+            }
         }
         else {
 
@@ -254,20 +277,23 @@ void Warehouse::update() {
             // Working consumes 2% battery
             robot->decreaseBattery(2);
 
-            std::cout << robot->getName()
-                      << " is working on Task "
-                      << task.getId() << "\n";
+            if (!animationMode) {
+                std::cout << robot->getName()
+                          << " is working on Task "
+                          << task.getId() << "\n";
+            }
 
             // Complete task
             if (task.isCompleted()) {
 
-                std::cout << "Task "
-                          << task.getId()
-                          << " completed!\n";
+                if (!animationMode) {
+                    std::cout << "Task "
+                              << task.getId()
+                              << " completed!\n";
+                }
 
                 currentTaskIndices[i]++;
 
-                // No more tasks
                 if (currentTaskIndices[i] >= robotTaskQueues[i].size()) {
                     robot->setStatus(RobotStatus::Idle);
                 }
@@ -277,15 +303,16 @@ void Warehouse::update() {
 }
 
 // Display Warehouse Grid
-
 void Warehouse::displayGrid() const {
 
     std::cout << "\n========== STEP GRID ==========\n";
 
     std::cout << "   ";
+
     for (int x = 0; x < width; x++) {
         std::cout << x << "  ";
     }
+
     std::cout << "\n";
 
     for (int y = 0; y < height; y++) {
@@ -296,8 +323,9 @@ void Warehouse::displayGrid() const {
 
             bool found = false;
 
-            // 1. Display Robot
+            // Display Robot
             for (int i = 0; i < robots.size(); i++) {
+
                 if (robots[i]->getX() == x &&
                     robots[i]->getY() == y) {
 
@@ -307,7 +335,7 @@ void Warehouse::displayGrid() const {
                 }
             }
 
-            // 2. Display Charging Station
+            // Display Charging Station
             if (!found &&
                 x == chargingStationX &&
                 y == chargingStationY) {
@@ -316,8 +344,9 @@ void Warehouse::displayGrid() const {
                 found = true;
             }
 
-            // 3. Display unfinished Tasks
+            // Display unfinished Tasks
             if (!found) {
+
                 for (const Task& task : tasks) {
 
                     if (!task.isCompleted() &&
@@ -340,7 +369,7 @@ void Warehouse::displayGrid() const {
                 }
             }
 
-            // 4. Empty cell
+            // Empty cell
             if (!found) {
                 std::cout << ".  ";
             }
@@ -349,7 +378,6 @@ void Warehouse::displayGrid() const {
         std::cout << "\n";
     }
 }
-
 
 // Display Robot Information
 void Warehouse::displayRobotStatus() const {
@@ -375,18 +403,17 @@ void Warehouse::displayRobotStatus() const {
             "," + std::to_string(robot->getY()) + ")";
 
         std::cout << std::left
-                  << std::setw(8)  << ("R" + std::to_string(i + 1))
+                  << std::setw(8) << ("R" + std::to_string(i + 1))
                   << std::setw(12) << robot->getType()
                   << std::setw(12) << position
                   << std::setw(12) << robot->getStatusName()
-                  << std::setw(10) << (std::to_string(robot->getBattery()) + "%")
+                  << std::setw(10)
+                  << (std::to_string(robot->getBattery()) + "%")
                   << "\n";
     }
 
     std::cout << "--------------------------------------------------\n";
 }
-
-
 
 // Check all tasks completed
 bool Warehouse::allTasksCompleted() const {
@@ -402,7 +429,11 @@ bool Warehouse::allTasksCompleted() const {
 }
 
 // Run Simulation
-void Warehouse::runSimulation() {
+void Warehouse::runSimulation(bool animationMode) {
+
+    if (animationMode) {
+        system("cls");
+    }
 
     std::cout << "Starting simulation...\n";
 
@@ -410,15 +441,32 @@ void Warehouse::runSimulation() {
 
     assignTasks();
 
+    if (assignmentFailed) {
+        std::cout << "\nSimulation cannot start!\n";
+        std::cout << "Please check robot and task types.\n";
+
+        simulationFailed = true;
+        showSummary();
+        return;
+    }
+
     int step = 1;
     totalTimesteps = 0;
 
     while (true) {
 
-        std::cout << "\nStep " << step << "\n";
+        if (animationMode) {
+            system("cls");
+            std::cout << "Timestep: " << step << "\n";
+        }
+        else {
+            std::cout << "\nStep " << step << "\n";
+        }
 
-        update();
+        // Update simulation
+        update(animationMode);
         totalTimesteps++;
+
         // Stop immediately if failure occurs
         if (simulationFailed) {
 
@@ -426,10 +474,17 @@ void Warehouse::runSimulation() {
             break;
         }
 
+        // Display current state
         displayGrid();
         displayTaskProgress();
-        // Display robot status
         displayRobotStatus();
+
+        // Animation delay
+        if (animationMode) {
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(1000)
+            );
+        }
 
         bool tasksDone = allTasksCompleted();
 
@@ -450,11 +505,20 @@ void Warehouse::runSimulation() {
         step++;
     }
 
+    if (animationMode) {
+        system("cls");
+
+        std::cout << "========== FINAL RESULT ==========\n";
+
+        displayGrid();
+        displayTaskProgress();
+        displayRobotStatus();
+    }
+
     showSummary();
 }
 
 // Simulation Summary
-
 void Warehouse::showSummary() const {
 
     std::cout << "\n========== SIMULATION SUMMARY ==========\n";
@@ -466,19 +530,15 @@ void Warehouse::showSummary() const {
         std::cout << "Simulation completed successfully!\n";
     }
 
-    // Total simulation time
     std::cout << "Total timesteps: " << totalTimesteps << "\n";
-
-    // Robot count
     std::cout << "Robot count: " << robots.size() << "\n";
-
-    // Task count
     std::cout << "Task count: " << tasks.size() << "\n";
 
     // Count completed tasks
     int completedCount = 0;
 
     for (const Task& task : tasks) {
+
         if (task.isCompleted()) {
             completedCount++;
         }
@@ -489,7 +549,6 @@ void Warehouse::showSummary() const {
 
     std::cout << "\n========== ROBOT PERFORMANCE ==========\n";
 
-    // Count completed tasks for each robot
     for (int i = 0; i < robots.size(); i++) {
 
         int robotCompletedTasks = 0;
@@ -513,7 +572,6 @@ void Warehouse::showSummary() const {
     displayRobotStatus();
 }
 
-
 // Set Charging Station
 void Warehouse::setChargingStation(int x, int y) {
 
@@ -531,7 +589,7 @@ void Warehouse::setChargingStation(int x, int y) {
               << x << ", " << y << ")\n";
 }
 
-
+// Display Task Progress
 void Warehouse::displayTaskProgress() const {
 
     std::cout << "\n========== TASK STATUS ==========\n";
@@ -548,18 +606,13 @@ void Warehouse::displayTaskProgress() const {
 
     for (const Task& task : tasks) {
 
-        std::string status;
-
         if (task.isCompleted()) {
-            status = "DONE";
             done++;
         }
         else if (task.getProgress() > 0) {
-            status = "IN PROGRESS";
             inProgress++;
         }
         else {
-            status = "WAITING";
             waiting++;
         }
 

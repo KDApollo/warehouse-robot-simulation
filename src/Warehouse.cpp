@@ -9,7 +9,8 @@ Warehouse::Warehouse(int width, int height)
       height(height),
       chargingStationX(-1),
       chargingStationY(-1),
-      simulationFailed(false) {
+      simulationFailed(false),
+      totalTimesteps(0) {
 }
 
 Warehouse::~Warehouse() {
@@ -410,13 +411,14 @@ void Warehouse::runSimulation() {
     assignTasks();
 
     int step = 1;
+    totalTimesteps = 0;
 
     while (true) {
 
         std::cout << "\nStep " << step << "\n";
 
         update();
-
+        totalTimesteps++;
         // Stop immediately if failure occurs
         if (simulationFailed) {
 
@@ -452,18 +454,28 @@ void Warehouse::runSimulation() {
 }
 
 // Simulation Summary
+
 void Warehouse::showSummary() const {
 
     std::cout << "\n========== SIMULATION SUMMARY ==========\n";
 
-    std::cout << "Simulation finished.\n";
+    if (simulationFailed) {
+        std::cout << "Simulation stopped due to failure.\n";
+    }
+    else {
+        std::cout << "Simulation completed successfully!\n";
+    }
 
+    // Total simulation time
+    std::cout << "Total timesteps: " << totalTimesteps << "\n";
+
+    // Robot count
     std::cout << "Robot count: " << robots.size() << "\n";
 
+    // Task count
     std::cout << "Task count: " << tasks.size() << "\n";
 
-    std::cout << "Completed tasks: ";
-
+    // Count completed tasks
     int completedCount = 0;
 
     for (const Task& task : tasks) {
@@ -472,12 +484,35 @@ void Warehouse::showSummary() const {
         }
     }
 
-    std::cout << completedCount << "/" << tasks.size() << "\n";
+    std::cout << "Completed tasks: "
+              << completedCount << "/" << tasks.size() << "\n";
 
-    std::cout << "\nFinal Robot Status:\n";
+    std::cout << "\n========== ROBOT PERFORMANCE ==========\n";
+
+    // Count completed tasks for each robot
+    for (int i = 0; i < robots.size(); i++) {
+
+        int robotCompletedTasks = 0;
+
+        for (int taskIndex : robotTaskQueues[i]) {
+
+            if (tasks[taskIndex].isCompleted()) {
+                robotCompletedTasks++;
+            }
+        }
+
+        std::cout << robots[i]->getName()
+                  << " (" << robots[i]->getType() << ")"
+                  << " completed "
+                  << robotCompletedTasks
+                  << " task(s).\n";
+    }
+
+    std::cout << "\n========== FINAL ROBOT STATUS ==========\n";
 
     displayRobotStatus();
 }
+
 
 // Set Charging Station
 void Warehouse::setChargingStation(int x, int y) {

@@ -22,6 +22,7 @@ private:
     int chargingStationY;
     std::vector<bool> returningToCharge;
     bool simulationFailed;
+    int totalTimesteps;
     bool hasEnoughBattery(const Robot* robot, const Task& task) const;
 
     bool allTasksCompleted() const;
